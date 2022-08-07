@@ -1,3 +1,5 @@
+import os
+import signal
 import time
 from pathlib import Path
 import sys
@@ -32,23 +34,29 @@ def run_on_lin():
     processes = []
 
     while True:
-        action = input('Выберите действие: q - выход, s - запустить сервер и клиенты: ')
+        action = input('Выберите действие: q - выход, s - запустить сервер и клиенты, x - закрыть все окна: ')
         if action == 'q':
             break
         elif action == 's' and not processes:
             file_path = BASE_DIR / 'server.py'
-            processes.append(subprocess.Popen(['gnome-terminal', '--', 'python3', f'{file_path}']))
+            processes.append(subprocess.Popen(
+                ['gnome-terminal', '--disable-factory', '--', 'python3', f'{file_path}'],
+                preexec_fn=os.setpgrp
+            ))
 
             file_path = BASE_DIR / 'client.py'
+            time.sleep(0.5)  # Время не должно быть меньше времени TIMEOUT_BLOCKING_SOCKET у сервера
             for _ in range(NUMBER_CLIENTS):
                 processes.append(
-                    subprocess.Popen(['gnome-terminal', '--', 'python3', f'{file_path}', '-n', f'test{_ + 1}']))
+                    subprocess.Popen(
+                        ['gnome-terminal', '--disable-factory', '--', 'python3', f'{file_path}', '-n', f'test{_ + 1}'],
+                        preexec_fn=os.setpgrp
+                    ))
 
-        # elif action == 'x':
-        #     while processes:
-        #         victim = processes.pop()
-        #         victim.kill()
-        #         victim.communicate()
+        elif action == 'x':
+            while processes:
+                victim = processes.pop()
+                os.killpg(victim.pid, signal.SIGINT)
 
 
 def main():
