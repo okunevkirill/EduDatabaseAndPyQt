@@ -2,7 +2,6 @@ import argparse
 import ipaddress
 import json
 import socket
-from abc import ABC, abstractmethod
 from typing import NamedTuple
 from enum import Enum
 
@@ -32,7 +31,7 @@ class Message(NamedTuple):
 
 
 # -----------------------------------------------------------------------------
-class BaseApplication(ABC):
+class BaseApplication:
     def __init__(self, *args, **kwargs):
         self.socket_app = None
 
@@ -88,6 +87,5 @@ class BaseApplication(ABC):
             raise ValueError
         return result
 
-    @abstractmethod
     def run(self):
-        ...
+        raise NotImplementedError

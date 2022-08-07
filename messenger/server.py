@@ -5,8 +5,11 @@ from collections import deque
 from typing import Dict, Optional
 
 import app_logging.etc.server_log_config as log_config
+import descrptrs
 from kernel.base import Message, BaseApplication, MessageType
 from app_logging.decorators import LogCalls
+
+from metaclasses import ServerVerifier
 
 # -----------------------------------------------------------------------------
 LOGGER_NAME = log_config.__name__
@@ -15,9 +18,10 @@ LOGGER = logging.getLogger(LOGGER_NAME)
 
 # -----------------------------------------------------------------------------
 
-class MessengerServer(BaseApplication):
+class MessengerServer(BaseApplication, metaclass=ServerVerifier):
     MAX_NUMBER_CONNECTIONS = 0
     TIMEOUT_BLOCKING_SOCKET = 0.5
+    port = descrptrs.Port()
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -93,9 +97,14 @@ class MessengerServer(BaseApplication):
 
     def run(self):
         """Application launch function"""
-        arguments = self.get_launch_arguments()
-        server_address = (arguments.addr, arguments.port)
-        self.socket_app = socket.create_server(server_address)
+        arguments = self.parser.parse_args()
+        self.port = arguments.port
+        if arguments.addr and not self.is_valid_ip_address(arguments.addr):
+            raise SystemExit("Invalid IP address specified - ip address must be in ipv4 format")
+
+        server_address = (arguments.addr, self.port)
+        self.socket_app = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.socket_app.bind(server_address)
         self.socket_app.settimeout(self.TIMEOUT_BLOCKING_SOCKET)
         self.socket_app.listen(self.MAX_NUMBER_CONNECTIONS)
         LOGGER.critical('Starting the server at address %s', server_address)
