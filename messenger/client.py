@@ -66,8 +66,8 @@ class MessengerClient(BaseApplication):
             action=MessageType.MESSAGE.value,
             time=time.time(),
             sender=self.username,
-            to=input("Введите имя получателя: "),
-            text=input("Введите текст сообщения: ")
+            to=input("Введите имя получателя: ").strip(),
+            text=input("Введите текст сообщения: ").strip()
         )
 
     def __respond_to_user_actions(self):
@@ -105,7 +105,7 @@ class MessengerClient(BaseApplication):
     def run(self):
         arguments = self.get_launch_arguments()
         if arguments.name is None:
-            arguments.name = input("Enter a name for the session: ")
+            arguments.name = input("Enter a name for the session: ").strip()
 
         server_address = (arguments.addr, arguments.port)
         self.socket_app = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
