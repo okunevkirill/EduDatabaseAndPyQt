@@ -21,6 +21,7 @@ UnixEpochTime = float
 class MessageType(str, Enum):
     MESSAGE = "message"
     PRESENCE = "presence"
+    EXIT = "exit"
 
 
 class Message(NamedTuple):

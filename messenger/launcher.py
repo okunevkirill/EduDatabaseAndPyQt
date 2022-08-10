@@ -5,7 +5,7 @@ from pathlib import Path
 import sys
 import subprocess
 
-NUMBER_CLIENTS = 3
+NUMBER_CLIENTS = 5
 BASE_DIR = Path(__file__).resolve().parent
 
 

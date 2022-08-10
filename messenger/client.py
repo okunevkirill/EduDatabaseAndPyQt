@@ -70,6 +70,13 @@ class MessengerClient(BaseApplication):
             text=input("Введите текст сообщения: ").strip()
         )
 
+    def create_exit_msg(self):
+        return {
+            "action": MessageType.EXIT.value,
+            "time": time.time(),
+            "account_name": self.username,
+        }
+
     def __respond_to_user_actions(self):
         self.show_help()
         while True:
@@ -81,6 +88,7 @@ class MessengerClient(BaseApplication):
                     continue
                 self.send_data_to_socket(self.socket_app, data_object=message_obj._asdict())
             elif command == 'exit':
+                self.send_data_to_socket(self.socket_app, data_object=self.create_exit_msg())
                 break
             else:
                 self.show_help()
