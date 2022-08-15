@@ -9,3 +9,6 @@ BASE_PORT = 7777
 
 # Maximum packet length when transmitting a message, bytes.
 MAX_PACKET_LENGTH = 1024
+
+NAME_CONFIG_FILE = 'settings.ini'
+DEFAULT_NAME_SERVER_DB = 'server_db.db3'

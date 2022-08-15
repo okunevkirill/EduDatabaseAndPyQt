@@ -22,6 +22,7 @@ class MessageType(str, Enum):
     MESSAGE = "message"
     PRESENCE = "presence"
     EXIT = "exit"
+    CONTACTS = "get_contacts"
 
 
 class Message(NamedTuple):

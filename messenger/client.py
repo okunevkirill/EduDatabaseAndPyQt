@@ -20,6 +20,9 @@ class MessengerClient(BaseApplication):
 
         self.parser.description = "Client part of a simple messenger"
         self.parser.add_argument("-n", "--name", dest="name", default=None, help="Client name in session")
+        self.contacts = []
+        self.lock_flag = threading.Lock()
+        # ----------------------------------
 
     @staticmethod
     def __presence_obj_generation(username):
@@ -35,16 +38,30 @@ class MessengerClient(BaseApplication):
             }
         }
 
+    def create_contacts_request(self):
+        return {
+            "action": MessageType.CONTACTS.value,
+            "time": time.time(),
+            "account_name": self.username,
+        }
+
     def __presence_exchange(self, username):
         data_object = self.__presence_obj_generation(username)
         self.send_data_to_socket(self.socket_app, data_object=data_object)
         response = self.get_socket_data(self.socket_app)
         LOGGER.info("Response from the server: %s", response)
+        self.send_data_to_socket(self.socket_app, data_object=self.create_contacts_request())
 
     def __work_with_server_msgs(self):
         while True:
             try:
                 data = self.get_socket_data(self.socket_app)
+                response = data.get('response')
+                if response:
+                    if response == '202':
+                        with self.lock_flag:
+                            self.contacts = data.get('alert', [])
+                    continue
                 message = Message(**data)
                 LOGGER.info("Message from '%s': '%s'", message.sender, message.text)
             except ValueError:
@@ -57,6 +74,7 @@ class MessengerClient(BaseApplication):
             '-' * 79,
             "Возможные команды:",
             "  message - отправить сообщение",
+            "  get_contacts - запрос контактов с сервера",
             "  exit - выход из приложения",
             sep='\n',
         )
@@ -90,6 +108,8 @@ class MessengerClient(BaseApplication):
             elif command == 'exit':
                 self.send_data_to_socket(self.socket_app, data_object=self.create_exit_msg())
                 break
+            elif command == 'get_contacts':
+                self.send_data_to_socket(self.socket_app, data_object=self.create_contacts_request())
             else:
                 self.show_help()
 
