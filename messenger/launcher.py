@@ -22,7 +22,8 @@ def run_on_win():
             time.sleep(0.5)  # Время не должно быть меньше времени TIMEOUT_BLOCKING_SOCKET у сервера
             for _ in range(NUMBER_CLIENTS):
                 processes.append(
-                    subprocess.Popen(f'python client.py -n test{_ + 1}', creationflags=subprocess.CREATE_NEW_CONSOLE))
+                    subprocess.Popen(
+                        f'python client_runner.py -n test{_ + 1}', creationflags=subprocess.CREATE_NEW_CONSOLE))
 
         elif action == 'x':
             while processes:
@@ -44,7 +45,7 @@ def run_on_lin():
                 preexec_fn=os.setpgrp
             ))
 
-            file_path = BASE_DIR / 'client.py'
+            file_path = BASE_DIR / 'client_runner.py'
             time.sleep(0.5)  # Время не должно быть меньше времени TIMEOUT_BLOCKING_SOCKET у сервера
             for _ in range(NUMBER_CLIENTS):
                 processes.append(

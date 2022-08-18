@@ -31,7 +31,7 @@ python server.py
 ```
 
 ```shell
-python client.py
+python client_runner.py
 ```
 
 ```shell
