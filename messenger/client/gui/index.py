@@ -124,10 +124,10 @@ class ClientMainWindow(QMainWindow):
         for msg in data:
             direction = msg.get('direction')
             if direction == 'in':
-                row = QStandardItem(f"Входящее от {msg.get('username')}:\n  {msg.get('text')}")
+                row = QStandardItem(f"Входящее от {msg.get('username')}:\n  {msg.get('msg_text')}")
                 row.setBackground(QBrush(QColor(255, 213, 213)))
             else:
-                row = QStandardItem(f"Исходящее от {msg.get('username')}:\n  {msg.get('text')}")
+                row = QStandardItem(f"Исходящее от {msg.get('username')}:\n  {msg.get('msg_text')}")
                 row.setBackground(QBrush(QColor(204, 255, 204)))
             row.setEditable(False)
             self.history_model.appendRow(row)
@@ -158,8 +158,8 @@ def __test_client_main_window(argv):
     window = ClientMainWindow()
     contacts = ['contact_00', 'contact_01', 'contact_02']
     history_msg = [
-        {'username': 'Rick', 'direction': 'in', 'text': 'Привет', 'date': '2022-08-18 15:12'},
-        {'username': 'Marty', 'direction': 'out', 'text': 'Медвед ;)', 'date': '2022-08-18 15:15'},
+        {'username': 'Rick', 'direction': 'in', 'msg_text': 'Привет', 'created_at': '2022-08-18 15:12'},
+        {'username': 'Marty', 'direction': 'out', 'msg_text': 'Медвед ;)', 'created_at': '2022-08-18 15:15'},
     ]
 
     window.fill_contacts_listview(contacts)
