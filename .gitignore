@@ -2,3 +2,5 @@
 /venv/
 __pycache__/
 /tmp/
+# DB when testing an application
+/messenger/server_for_del.db3
