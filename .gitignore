@@ -3,3 +3,4 @@
 __pycache__/
 /tmp/
 /messenger/app_logging/log/
+/messenger/log/

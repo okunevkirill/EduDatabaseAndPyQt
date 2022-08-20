@@ -23,6 +23,7 @@ class MessageType(str, Enum):
     PRESENCE = "presence"
     EXIT = "exit"
     CONTACTS = "get_contacts"
+    LIST_INFO = "data_list"
 
 
 class Message(NamedTuple):

@@ -13,6 +13,7 @@ from PyQt5.QtCore import QTimer
 from PyQt5.QtWidgets import QApplication, QMessageBox
 
 import app_logging.etc.server_log_config as log_config
+import common.settings as settings
 from db.database import engine_server, SessionServer, ServerBase
 from db.models import User, Connection, LoginHistory
 from gui.windows import ServerMainWindow, StatisticsWindow, SettingsWindow
@@ -121,6 +122,13 @@ class MessengerServer(BaseApplication):
         }
         self.send_data_to_socket(sock, data_object=data)
 
+    def _send_active_users(self, sock, username):
+        data = {
+            settings.RESPONSE: "202",
+            settings.LIST_INFO: [el.username for el in self.database.get_users()]
+        }
+        self.send_data_to_socket(sock, data_object=data)
+
     def __process_incoming_message(self, sock: socket.socket) -> None:
         data = self.get_socket_data(sock)
         _action = data.get("action")
@@ -149,6 +157,9 @@ class MessengerServer(BaseApplication):
         elif _action == MessageType.CONTACTS.value:
             username_to = data["account_name"]
             self._send_contacts(sock, username=username_to)
+        elif _action == settings.USERS_REQUEST:
+            username_to = data.get(settings.ACCOUNT_NAME)
+            self._send_active_users(sock, username=username_to)
 
     def __process_outgoing_message(self, message: Message, wlist: list) -> None:
         if message.to == message.sender or self.clients_app.get(message.to) not in wlist:
