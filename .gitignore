@@ -4,3 +4,4 @@ __pycache__/
 /tmp/
 # DB when testing an application
 /messenger/server_for_del.db3
+/messenger/client_for_del.db3
