@@ -17,9 +17,9 @@ def _get_path_img(filename: str):
 
 
 class ServerMainWindow(QMainWindow):
-    def __init__(self, slot_history__btn=None, slot_setting__btn=None, *args, **kwargs):
+    def __init__(self, slot_statistic__btn=None, slot_setting__btn=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self._slot_history__btn = slot_history__btn
+        self._slot_statistic__btn = slot_statistic__btn
         self._slot_setting__btn = slot_setting__btn
         self._main_window_config()
         self._create_toolbar()
@@ -35,15 +35,15 @@ class ServerMainWindow(QMainWindow):
     def _create_toolbar(self):
         toolbar = self.addToolBar('MainBar')
         toolbar.setMovable(False)
-        history_btn = QAction('История клиентов', self)
-        if self._slot_history__btn:
-            history_btn.triggered.connect(self._slot_history__btn)
+        statistic_btn = QAction('История клиентов', self)
+        if self._slot_statistic__btn:
+            statistic_btn.triggered.connect(self._slot_statistic__btn)
         setting_btn = QAction('Настройки сервера', self)
         if self._slot_setting__btn:
             setting_btn.triggered.connect(self._slot_setting__btn)
         exit_btn = QAction(
             QIcon(_get_path_img('exit_icon.png')), 'Выход', self)
-        toolbar.addAction(history_btn)
+        toolbar.addAction(statistic_btn)
         toolbar.addAction(setting_btn)
         toolbar.addAction(exit_btn)
         exit_btn.setShortcut('Ctrl+Q')
@@ -78,8 +78,8 @@ class ServerMainWindow(QMainWindow):
 
 
 # -----------------------------------------------------------------------------
-def __slot_history__btn():
-    print('== Отрабатываем нажатие на кнопку истории ==')
+def __slot_statistic__btn():
+    print('== Отрабатываем нажатие на кнопку статистики ==')
 
 
 def __slot_setting__btn():
@@ -89,7 +89,7 @@ def __slot_setting__btn():
 # -----------------------------------------------------------------------------
 def __test_server_window(argv):
     _app = QApplication(argv)
-    window = ServerMainWindow(slot_history__btn=__slot_history__btn,
+    window = ServerMainWindow(slot_statistic__btn=__slot_statistic__btn,
                               slot_setting__btn=__slot_setting__btn)
     data = [
         {'username': 'Rick', 'ip_address': '192.168.1.10', 'port': '1234',

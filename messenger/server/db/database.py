@@ -13,11 +13,11 @@ from server.db.definitions import (
 )
 
 _BASE_DIR = Path(__file__).resolve().parent.parent.parent
-_DEFAULT_PATH_DB = str(_BASE_DIR / 'server_db.db3')
+DEFAULT_PATH_DB = str(_BASE_DIR / 'server_db.db3')
 
 
 class ServerDatabase:
-    def __init__(self, path: str = _DEFAULT_PATH_DB):
+    def __init__(self, path: str = DEFAULT_PATH_DB):
         self.path = Path(path).resolve()
         self._init_database()
         # [!] очищаем БД от возможных некорректных данных после ошибок
@@ -138,7 +138,7 @@ class ServerDatabase:
             ActiveUser.login_time).join(AllUsers).all()
         return [
             {'username': el.username, 'ip_address': el.ip_address,
-             'port': el.port, 'login_time': el.login_time}
+             'port': str(el.port), 'login_time': str(el.login_time)}
             for el in query
         ]
 
@@ -152,8 +152,8 @@ class ServerDatabase:
         if username:
             query = query.filter(AllUsers.username == username)
         return [
-            {'username': el.username, 'date_time': el.date_time,
-             'ip_address': el.ip_address, 'port': el.port}
+            {'username': el.username, 'date_time': str(el.date_time),
+             'ip_address': el.ip_address, 'port': str(el.port)}
             for el in query
         ]
 
@@ -170,7 +170,11 @@ class ServerDatabase:
         query = self.session.query(
             AllUsers.username, AllUsers.last_login, UserHistory.sent,
             UserHistory.accepted).join(AllUsers)
-        return query.all()
+        return [
+            {'username': el.username, 'last_login': str(el.last_login),
+             'sent': str(el.sent), 'accepted': str(el.accepted)}
+            for el in query
+        ]
 
 
 if __name__ == '__main__':
