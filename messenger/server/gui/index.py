@@ -70,7 +70,7 @@ class ServerMainWindow(QMainWindow):
             ['Имя Клиента', 'IP Адрес', 'Порт', 'Время подключения'])
         for item in data:
             row = (QStandardItem(item.get(key))
-                   for key in ('username', 'ip_address', 'port', 'connection_time'))
+                   for key in ('username', 'ip_address', 'port', 'login_time'))
             item_model.appendRow(row)
         self._connection_table.setModel(item_model)
         self._connection_table.resizeColumnsToContents()
