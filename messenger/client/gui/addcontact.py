@@ -1,18 +1,21 @@
+from typing import Optional
 from PyQt5.QtWidgets import (
     QDialog, QApplication, QLabel, QComboBox, QPushButton,
 )
 from PyQt5.QtCore import Qt
+
+from client.db.database import ClientDatabase
+from client.transport import ClientTransport
 
 
 class AddContactWindow(QDialog):
     _WINDOW_WIDTH = 400
     _WINDOW_HEIGHT = 115
 
-    def __init__(self, slot_refresh__btn=None,
-                 slot_add__btn=None, *args, **kwargs):
+    def __init__(self, transport: Optional[ClientTransport], database: Optional[ClientDatabase], *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self._slot_refresh__btn = slot_refresh__btn
-        self._slot_add__btn = slot_add__btn
+        self.transport = transport
+        self.database = database
 
         self._window_configuration()
         self._create_msg__label()
@@ -20,8 +23,8 @@ class AddContactWindow(QDialog):
         self._create_add__btn()
         self._create_cancel__btn()
         self._create_refresh__btn()
-
         self.show()
+        self.possible_contacts_update()
 
     def _window_configuration(self):
         self.setWindowTitle('Добавление контакта')
@@ -43,8 +46,6 @@ class AddContactWindow(QDialog):
         self.add__btn = QPushButton('Добавить', self)
         self.add__btn.setFixedWidth(110)
         self.add__btn.move(280, 30)
-        if self._slot_add__btn:
-            self.add__btn.clicked.connect(self._slot_add__btn)
 
     def _create_cancel__btn(self):
         self.cancel__btn = QPushButton('Отмена', self)
@@ -57,32 +58,40 @@ class AddContactWindow(QDialog):
         self.refresh__btn = QPushButton('Обновить список', self)
         self.refresh__btn.adjustSize()
         self.refresh__btn.move(10, 75)
-        if self._slot_refresh__btn:
-            self.refresh__btn.clicked.connect(self._slot_refresh__btn)
+        self.refresh__btn.clicked.connect(self.update_possible_contacts)
+
+    def possible_contacts_update(self, contacts=None, users=None):
+        self.selector__box.clear()
+        if self.database:
+            contacts_list = set(self.database.get_contacts())
+            users_list = set(self.database.get_known_users())
+        else:
+            contacts_list = contacts or set()
+            users_list = users or set()
+        if self.transport:
+            users_list.remove(self.transport.username)
+        self.selector__box.addItems(users_list - contacts_list)
+
+    def update_possible_contacts(self, user_list=None):
+        if not self.transport:
+            return
+        try:
+            self.transport.user_list_update()
+        except OSError:
+            pass
+        else:
+            self.possible_contacts_update()
 
     def fill_selector__box(self, data: list):
         self.selector__box.clear()
         self.selector__box.addItems(data)
 
 
-# -----------------------------------------------------------------------------
-def __slot_refresh__btn():
-    print('== Отрабатываем нажатие на кнопку обновления ==')
-
-
-def __slot_add__btn():
-    print('== Отрабатываем нажатие на кнопку добавления ==')
-
-
-# -----------------------------------------------------------------------------
-
-
 if __name__ == '__main__':
     import sys
 
     app = QApplication(sys.argv)
-    window = AddContactWindow(
-        slot_refresh__btn=__slot_refresh__btn, slot_add__btn=__slot_add__btn)
+    window = AddContactWindow(transport=None, database=None)
     contacts = ['User_1', 'User_2', 'User_3']
     window.fill_selector__box(contacts)
     sys.exit(app.exec_())

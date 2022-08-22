@@ -71,7 +71,7 @@ class ClientDatabase:
     def get_known_users(self):
         return [el[0] for el in self.session.query(KnownUser.username).all()]
 
-    def get_msg_history(self, username: str):
+    def get_msg_history(self, username: str) -> List[dict]:
         messages = self.session.query(MessageHistory).filter_by(username=username).all()
         return [
             {'username': el.username, 'direction': el.direction,
