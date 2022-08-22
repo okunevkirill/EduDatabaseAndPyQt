@@ -13,15 +13,13 @@ class ClientMainWindow(QMainWindow):
     _WINDOW_HEIGHT = 480
 
     def __init__(self, slot_add_contact=None, slot_del_contact=None,
-                 slot_clear_input=None, slot_send_msg=None,
-                 slot_active_contact=None,
+                 slot_send_msg=None, slot_active_contact=None,
                  *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.history_model = None
         self.current_username_chat = 'контакта'
         self._slot_add_contact = slot_add_contact
         self._slot_del_contact = slot_del_contact
-        self._slot_clear_input = slot_clear_input
         self._slot_send_msg = slot_send_msg
         self._slot_active_contact = slot_active_contact
 
@@ -102,12 +100,14 @@ class ClientMainWindow(QMainWindow):
         self.msg__textedit = QTextEdit(self)
         self.msg__textedit.setGeometry(QRect(220, 320, 410, 80))
 
+    def _slot_clear_input(self):
+        self.msg__textedit.clear()
+
     def _create_input_btn(self):
         self.clear_textedit__btn = QPushButton('Очистить поле', self)
         self.clear_textedit__btn.setFixedWidth(120)
         self.clear_textedit__btn.move(380, 410)
-        if self._slot_clear_input:
-            self.clear_textedit__btn.clicked.connect(self._slot_clear_input)
+        self.clear_textedit__btn.clicked.connect(self._slot_clear_input)
 
         self.send_textedit__btn = QPushButton('Отправить', self)
         self.send_textedit__btn.setFixedWidth(120)
@@ -170,10 +170,6 @@ def __slot_active_contact():
     print('== Отрабатываем двойной щелчок на контакте ==')
 
 
-def __slot_clear_input():
-    print('== Отрабатываем кнопку очистки ==')
-
-
 def __slot_send_msg():
     print('== Отрабатываем кнопку отправки ==')
 
@@ -184,7 +180,6 @@ def __test_client_main_window(argv):
     window = ClientMainWindow(
         slot_add_contact=__slot_add_contact,
         slot_del_contact=__slot_del_contact,
-        slot_clear_input=__slot_clear_input,
         slot_send_msg=__slot_send_msg,
         slot_active_contact=__slot_active_contact
     )

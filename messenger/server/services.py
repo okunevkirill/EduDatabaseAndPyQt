@@ -12,19 +12,15 @@ from typing import Dict, Optional
 from PyQt5.QtCore import QTimer
 from PyQt5.QtWidgets import QApplication, QMessageBox
 
-import common.utils as utils
-import common.settings as settings
-import server.logger as log_config
-# from common.settings import (
-#     DEFAULT_PORT, DEFAULT_ENCODING, MIN_ADMISSIBLE_PORT, MAX_ADMISSIBLE_PORT,
-# )
+from common import settings, utils
+from server import logger
 from server.db.database import ServerDatabase, DEFAULT_PATH_DB
 from server.gui.index import ServerMainWindow
 from server.gui.settings import SettingsWindow
 from server.gui.statistics import StatisticsWindow
 
 # -----------------------------------------------------------------------------
-LOGGER_NAME = log_config.__name__
+LOGGER_NAME = logger.__name__
 LOGGER = logging.getLogger(LOGGER_NAME)
 _PATH_TO_CONFIG = Path(__file__).resolve().parent / 'config.ini'
 
@@ -270,13 +266,13 @@ class Server:
         stream_for_clients = threading.Thread(target=self.work_with_clients)
         stream_for_clients.daemon = True
         stream_for_clients.start()
-        LOGGER.debug('Запуск графического интерфейса')
-        self.run__gui()
+        self.run_main__gui()
 
     # -------------------------------------------------------------------------
     # Методы работы с графическим интерфейсом
-    def run__gui(self):
+    def run_main__gui(self):
         """Запуск графического интерфейса"""
+        LOGGER.debug('Запуск главного окна gui')
         app = QApplication(sys.argv)
         self.window_main = ServerMainWindow(
             slot_statistic__btn=self._slot_statistic__btn__gui,
