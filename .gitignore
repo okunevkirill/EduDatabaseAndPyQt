@@ -2,3 +2,8 @@
 /venv/
 __pycache__/
 /tmp/
+# DB when testing an application
+/messenger/server_db.db3
+/messenger/client_for_del.db3
+# directory for logs
+/messenger/log/
