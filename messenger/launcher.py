@@ -13,7 +13,7 @@ def run_on_win():
     processes = []
 
     while True:
-        action = input('Выберите действие: q - выход, s - запустить сервер и клиенты, x - закрыть все окна: ')
+        action = input('Выберите действие: q - выход, s - запустить сервер и клиенты, x - закрыть все окна: ').strip()
 
         if action == 'q':
             break
@@ -35,7 +35,7 @@ def run_on_lin():
     processes = []
 
     while True:
-        action = input('Выберите действие: q - выход, s - запустить сервер и клиенты, x - закрыть все окна: ')
+        action = input('Выберите действие: q - выход, s - запустить сервер и клиенты, x - закрыть все окна: ').strip()
         if action == 'q':
             break
         elif action == 's' and not processes:
