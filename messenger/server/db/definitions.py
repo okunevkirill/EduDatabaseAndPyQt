@@ -2,9 +2,10 @@ import datetime
 
 
 class AllUsers:
-    def __init__(self, username):
+    def __init__(self, username, password_hash):
         self.id = None
         self.username = username
+        self.password_hash = password_hash
         self.last_login = datetime.datetime.now()
 
     def __repr__(self):

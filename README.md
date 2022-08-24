@@ -2,7 +2,7 @@
 
 В рамках курса продолжается работа над проектом многопоточного мессенджера.
 
-[Примечания по уроку №005](docs/notes_lesson_005.md)
+[Примечания по уроку №005](docs/notes_lesson_006.md)
 
 ## Информация о структуре репозитория
 
@@ -27,11 +27,11 @@ cd messenger/
 ```
 
 ```shell
-python server.py
+python server_run.py
 ```
 
 ```shell
-python client.py
+python client_run.py
 ```
 
 ```shell

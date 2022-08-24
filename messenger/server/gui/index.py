@@ -17,10 +17,17 @@ def _get_path_img(filename: str):
 
 
 class ServerMainWindow(QMainWindow):
-    def __init__(self, slot_statistic__btn=None, slot_setting__btn=None, *args, **kwargs):
+    _WINDOW_WIDTH = 800
+    _WINDOW_HEIGHT = 480
+
+    def __init__(self, slot_statistic__btn=None, slot_setting__btn=None,
+                 slot_register__btn=None, slot_del_user__btn=None,
+                 *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._slot_statistic__btn = slot_statistic__btn
         self._slot_setting__btn = slot_setting__btn
+        self._slot_register__btn = slot_register__btn
+        self._slot_delete_user__btn = slot_del_user__btn
         self._main_window_config()
         self._create_toolbar()
         self._create_header()
@@ -30,36 +37,48 @@ class ServerMainWindow(QMainWindow):
 
     def _main_window_config(self):
         self.setWindowTitle('Server part of "Messenger"')
-        self.setFixedSize(640, 480)
+        self.setFixedSize(self._WINDOW_WIDTH, self._WINDOW_HEIGHT)
 
     def _create_toolbar(self):
         toolbar = self.addToolBar('MainBar')
         toolbar.setMovable(False)
-        statistic_btn = QAction('История клиентов', self)
-        if self._slot_statistic__btn:
-            statistic_btn.triggered.connect(self._slot_statistic__btn)
-        setting_btn = QAction('Настройки сервера', self)
-        if self._slot_setting__btn:
-            setting_btn.triggered.connect(self._slot_setting__btn)
-        exit_btn = QAction(
+        statistic__btn = QAction(
+            QIcon(_get_path_img('history_icon.png')), 'История клиентов', self)
+        setting__btn = QAction(
+            QIcon(_get_path_img('settings_icon.png')), 'Настройки сервера', self)
+        register__btn = QAction(
+            QIcon(_get_path_img('add_user_icon.png')), 'Регистрация пользователя', self)
+        delete_user__btn = QAction(
+            QIcon(_get_path_img('del_user_icon.png')), 'Удалить пользователя', self)
+        exit__btn = QAction(
             QIcon(_get_path_img('exit_icon.png')), 'Выход', self)
-        toolbar.addAction(statistic_btn)
-        toolbar.addAction(setting_btn)
-        toolbar.addAction(exit_btn)
-        exit_btn.setShortcut('Ctrl+Q')
-        exit_btn.triggered.connect(qApp.quit)
+        toolbar.addAction(statistic__btn)
+        toolbar.addAction(setting__btn)
+        toolbar.addAction(register__btn)
+        toolbar.addAction(delete_user__btn)
+        toolbar.addAction(exit__btn)
+        exit__btn.setShortcut('Ctrl+Q')
+        if self._slot_statistic__btn:
+            statistic__btn.triggered.connect(self._slot_statistic__btn)
+        if self._slot_setting__btn:
+            setting__btn.triggered.connect(self._slot_setting__btn)
+        if self._slot_register__btn:
+            register__btn.triggered.connect(self._slot_register__btn)
+        if self._slot_delete_user__btn:
+            delete_user__btn.triggered.connect(self._slot_delete_user__btn)
+        exit__btn.triggered.connect(qApp.quit)
 
     def _create_header(self):
         label = QLabel('Список подключённых клиентов', self)
         label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         label.setStyleSheet('font-weight: bold')
-        label.setFixedSize(600, 30)
+        label.setFixedWidth(self._WINDOW_WIDTH)
         label.move(10, 35)
 
     def _create_table(self):
         self._connection_table = QTableView(self)
         self._connection_table.move(10, 70)
-        self._connection_table.setFixedSize(620, 390)
+        self._connection_table.setFixedSize(self._WINDOW_WIDTH - 20, self._WINDOW_HEIGHT - 90)
 
     def _create_statusbar(self):
         self.statusBar()
@@ -86,11 +105,21 @@ def __slot_setting__btn():
     print('== Отрабатываем нажатие на кнопку настроек ==')
 
 
+def __slot_register__btn():
+    print('== Отрабатываем нажатие на регистрации пользователя ==')
+
+
+def __slot_del_user__btn():
+    print('== Отрабатываем нажатие на кнопку удаления пользователя ==')
+
+
 # -----------------------------------------------------------------------------
 def __test_server_window(argv):
     _app = QApplication(argv)
     window = ServerMainWindow(slot_statistic__btn=__slot_statistic__btn,
-                              slot_setting__btn=__slot_setting__btn)
+                              slot_setting__btn=__slot_setting__btn,
+                              slot_register__btn=__slot_register__btn,
+                              slot_del_user__btn=__slot_del_user__btn)
     data = [
         {'username': 'Rick', 'ip_address': '192.168.1.10', 'port': '1234',
          'connection_time': '2022-08-14 20:00'},
