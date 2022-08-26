@@ -23,7 +23,7 @@ def run_on_win():
             for _ in range(NUMBER_CLIENTS):
                 processes.append(
                     subprocess.Popen(
-                        f'python run_client.py -n test{_ + 1}', creationflags=subprocess.CREATE_NEW_CONSOLE))
+                        f'python run_client.py -n test{_ + 1} -p 123456', creationflags=subprocess.CREATE_NEW_CONSOLE))
 
         elif action == 'x':
             while processes:
@@ -46,11 +46,12 @@ def run_on_lin():
             ))
 
             file_path = BASE_DIR / 'run_client.py'
-            time.sleep(0.5)  # Время не должно быть меньше времени TIMEOUT_BLOCKING_SOCKET у сервера
+            time.sleep(1)  # Время не должно быть меньше времени TIMEOUT_BLOCKING_SOCKET у сервера
             for _ in range(NUMBER_CLIENTS):
                 processes.append(
                     subprocess.Popen(
-                        ['gnome-terminal', '--disable-factory', '--', 'python3', f'{file_path}', '-n', f'test{_ + 1}'],
+                        ['gnome-terminal', '--disable-factory', '--', 'python3',
+                         f'{file_path}', '-n', f'test{_ + 1}', '-p', '123456'],
                         preexec_fn=os.setpgrp
                     ))
 

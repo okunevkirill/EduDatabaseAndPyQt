@@ -18,12 +18,13 @@ class ClientTransport(threading.Thread, QObject):
     new_message = pyqtSignal(str)
     connection_lost = pyqtSignal()
 
-    def __init__(self, port, ip_address, username, database: ClientDatabase):
+    def __init__(self, port, ip_address, username, password, database: ClientDatabase):
         threading.Thread.__init__(self)
         QObject.__init__(self)
 
         self.database = database
         self.username = username
+        self.password_hash = utils.get_hash(password, username)
         self.transport = None
         self.log_flag = threading.Lock()
         self.connection_init(port, ip_address)
@@ -85,7 +86,8 @@ class ClientTransport(threading.Thread, QObject):
             settings.ACTION: settings.PRESENCE,
             settings.TIME: time.time(),
             settings.USER: {
-                settings.ACCOUNT_NAME: self.username
+                settings.ACCOUNT_NAME: self.username,
+                settings.PASSWORD_HASH: self.password_hash
             }
         }
         LOGGER.debug(f'Сформировано {settings.PRESENCE} сообщение для пользователя {self.username}')

@@ -23,6 +23,7 @@ class SettingsWindow(QDialog):
     def _main_window_config(self):
         self.setWindowTitle('Settings')
         self.setFixedSize(380, 290)
+        self.setModal(True)
 
     def _create_settings_for_database(self):
         db_path__label = QLabel('Путь до директории базы данных', self)

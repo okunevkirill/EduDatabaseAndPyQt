@@ -15,7 +15,9 @@ from PyQt5.QtWidgets import QApplication, QMessageBox
 from common import settings, utils
 from server import logger
 from server.db.database import ServerDatabase, DEFAULT_PATH_DB
+from server.gui.deluser import DelUserWindow
 from server.gui.index import ServerMainWindow
+from server.gui.registration import RegistrationWindow
 from server.gui.settings import SettingsWindow
 from server.gui.statistics import StatisticsWindow
 
@@ -72,6 +74,8 @@ class Server:
         self.window_main: Optional[ServerMainWindow] = None
         self.window_statistic: Optional[StatisticsWindow] = None
         self.window_settings: Optional[SettingsWindow] = None
+        self.window_register_user: Optional[RegistrationWindow] = None
+        self.window_del_user: Optional[DelUserWindow] = None
         # ----------------------------------------
         self._init_console_parser()
 
@@ -79,7 +83,7 @@ class Server:
         """Получение параметров из консоли"""
         parser = argparse.ArgumentParser(description='Server part of the messenger')
         parser.add_argument('-a', '--addr', dest='addr', default='', help='IP address to listen on')
-        parser.add_argument('-p', '--port', dest='port', default=settings.DEFAULT_PORT, type=int,
+        parser.add_argument('-P', '--port', dest='port', default=settings.DEFAULT_PORT, type=int,
                             help='The port the application is running on')
         self.parser_arguments = parser.parse_args()
         ip_address = self.parser_arguments.addr
@@ -90,33 +94,65 @@ class Server:
             raise SystemExit('Invalid port - the port must be in the range of registered or private')
 
     # -------------------------------------------------------------------------
+    def presence_msg_processing(self, message: dict, client_socket: socket.socket):
+        """Обработка сообщений о присутствии"""
+        username = message.get(settings.USER).get(settings.ACCOUNT_NAME)
+        if username in self.clients:
+            # Клиент с таким именем уже подключен
+            response = settings.RESPONSE_400.copy()
+            response[settings.ERROR] = 'Имя пользователя занято'
+            utils.send_message_to_socket(client_socket, response)
+            self.connections.discard(client_socket)
+            client_socket.close()
+            return
+        if not self.database.is_user_registered(username):
+            # Клиента нет в БД
+            response = settings.RESPONSE_400.copy()
+            response[settings.ERROR] = 'Пользователь не зарегистрирован'
+            utils.send_message_to_socket(client_socket, response)
+            self.connections.discard(client_socket)
+            client_socket.close()
+            return
+        # Проверка пароля
+        try:
+            password_hash = message.get(settings.USER).get(settings.PASSWORD_HASH)
+        except KeyError:
+            password_hash = None
+        self.clients[username] = client_socket
+        client_ip, client_port = client_socket.getpeername()
+        try:
+            self.database.user_login(
+                username=username, password_hash=password_hash, ip_address=client_ip, port=client_port)
+        except ValueError as err:
+            response = settings.RESPONSE_400.copy()
+            response[settings.ERROR] = f'{err}'
+            utils.send_message_to_socket(client_socket, response)
+        else:
+            utils.send_message_to_socket(client_socket, settings.RESPONSE_200)
+            with self.lock_flag:
+                self.is_connections_changed = True
+
+    # -------------------------------------------------------------------------
     def _init_socket(self):
         LOGGER.info(f"Запущен сервер: '{self.ip_address}:{self.port}'")
         self.socket_app = socket.create_server((self.ip_address, self.port))
         self.socket_app.settimeout(self.TIMEOUT_BLOCKING_SOCKET)
         self.socket_app.listen(self.MAX_NUMBER_CONNECTIONS)
 
+    def del_socket_by_username(self, username: str):
+        sock = self.clients.get(username)
+        if sock:
+            sock.close()
+            del self.clients[username]
+        with self.lock_flag:
+            self.is_connections_changed = True
+
     def _process_incoming_message(self, message: dict, client: socket.socket):
         LOGGER.debug(f'Разбор сообщения от клиента : {client.getpeername()!r}')
-        # Если это сообщение о присутствии, принимаем и отвечаем
+        # Если это сообщение о присутствии пытаемся авторизовать и отвечаем
         if all((settings.ACTION in message, message.get(settings.ACTION) == settings.PRESENCE,
                 settings.TIME in message, settings.USER in message)):
-            # Если такой пользователь ещё не зарегистрирован, регистрируем,
-            # иначе отправляем ответ и завершаем соединение.
-            username = message.get(settings.USER).get(settings.ACCOUNT_NAME)
-            if username not in self.clients:
-                self.clients[username] = client
-                client_ip, client_port = client.getpeername()
-                self.database.user_login(username=username, ip_address=client_ip, port=client_port)
-                utils.send_message_to_socket(client, settings.RESPONSE_200)
-                with self.lock_flag:
-                    self.is_connections_changed = True
-            else:
-                response = settings.RESPONSE_400.copy()
-                response[settings.ERROR] = 'Имя пользователя занято'
-                utils.send_message_to_socket(client, response)
-                self.connections.discard(client)
-                client.close()
+            self.presence_msg_processing(message, client)
             return
         # ---------------------------------------------------------------------
         # Если это сообщение, то добавляем его в очередь сообщений,
@@ -142,12 +178,7 @@ class Server:
             LOGGER.info(f'Клиент {message[settings.ACCOUNT_NAME]} корректно отключился от сервера')
             self.database.user_logout(message[settings.ACCOUNT_NAME])
             self.connections.discard(client)
-            sock = self.clients.get(message[settings.ACCOUNT_NAME])
-            if sock:
-                sock.close()
-                del self.clients[message[settings.ACCOUNT_NAME]]
-            with self.lock_flag:
-                self.is_connections_changed = True
+            self.del_socket_by_username(message[settings.ACCOUNT_NAME])
             return
         # ---------------------------------------------------------------------
         # Если это запрос контакт-листа
@@ -269,14 +300,16 @@ class Server:
         self.run_main__gui()
 
     # -------------------------------------------------------------------------
-    # Методы работы с графическим интерфейсом
     def run_main__gui(self):
         """Запуск графического интерфейса"""
         LOGGER.debug('Запуск главного окна gui')
         app = QApplication(sys.argv)
         self.window_main = ServerMainWindow(
             slot_statistic__btn=self._slot_statistic__btn__gui,
-            slot_setting__btn=self._slot_setting__btn__gui)
+            slot_setting__btn=self._slot_setting__btn__gui,
+            slot_register__btn=self._slot_register__btn__gui,
+            slot_del_user__btn=self._slot_del_user__btn__gui
+        )
         self.window_main.statusBar().showMessage('Server Working')
 
         timer = QTimer()
@@ -330,3 +363,27 @@ class Server:
 
             with open(_PATH_TO_CONFIG, "w", encoding=settings.DEFAULT_ENCODING) as config_file:
                 config.write(config_file)
+
+    def _slot_register__btn__gui(self):
+        """Слот нажатия на кнопку регистрации клиента"""
+        self.window_register_user = RegistrationWindow(
+            slot_save__btn=self.save_new_user)
+
+    def _slot_del_user__btn__gui(self):
+        """Слот нажатия на кнопку удаления клиента"""
+        self.window_del_user = DelUserWindow(slot_del__btn=self.delete_user)
+        self.window_del_user.fill_selector__box(self.database.get_list_of_usernames())
+
+    def save_new_user(self, username: str, password: str):
+        if self.database.is_user_registered(username):
+            raise ValueError('Пользователь уже существует')
+        password_hash = utils.get_hash(word=password, salt=username)
+        self.database.add_user(username, password_hash)
+
+    def delete_user(self):
+        message = QMessageBox()
+        username = self.window_del_user.get_selected_username()
+        self.database.del_user(username)
+        message.information(self.window_del_user, 'Успех', 'Пользователь удалён')
+        self.del_socket_by_username(username)
+        self.window_del_user.close()

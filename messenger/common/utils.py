@@ -1,3 +1,5 @@
+import binascii
+import hashlib
 import ipaddress
 import json
 import socket
@@ -42,3 +44,10 @@ def is_valid_port(port: Union[str, int]) -> bool:
     except (ValueError, TypeError):
         return False
     return MIN_ADMISSIBLE_PORT <= value <= MAX_ADMISSIBLE_PORT
+
+
+def get_hash(word: str, salt: str):
+    word_bytes = word.encode(DEFAULT_ENCODING)
+    salt_bytes = salt.encode(DEFAULT_ENCODING)
+    word_hash_bytes = hashlib.pbkdf2_hmac('sha256', word_bytes, salt_bytes, 1000)
+    return binascii.hexlify(word_hash_bytes).decode(DEFAULT_ENCODING)
