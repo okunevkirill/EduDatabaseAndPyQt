@@ -1,0 +1,2 @@
+[console_scripts]
+server_run = messenger_trial_server.run_server:main

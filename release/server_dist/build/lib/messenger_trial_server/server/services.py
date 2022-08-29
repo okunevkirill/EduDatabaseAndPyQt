@@ -12,14 +12,14 @@ from typing import Dict, Optional
 from PyQt5.QtCore import QTimer
 from PyQt5.QtWidgets import QApplication, QMessageBox
 
-from common import settings, utils
-from server import logger
-from server.db.database import ServerDatabase, DEFAULT_PATH_DB
-from server.gui.deluser import DelUserWindow
-from server.gui.index import ServerMainWindow
-from server.gui.registration import RegistrationWindow
-from server.gui.settings import SettingsWindow
-from server.gui.statistics import StatisticsWindow
+from messenger_trial_server.common import settings, utils
+from messenger_trial_server.server import logger
+from messenger_trial_server.server.db.database import ServerDatabase, DEFAULT_PATH_DB
+from messenger_trial_server.server.gui.deluser import DelUserWindow
+from messenger_trial_server.server.gui.index import ServerMainWindow
+from messenger_trial_server.server.gui.registration import RegistrationWindow
+from messenger_trial_server.server.gui.settings import SettingsWindow
+from messenger_trial_server.server.gui.statistics import StatisticsWindow
 
 # -----------------------------------------------------------------------------
 LOGGER_NAME = logger.__name__

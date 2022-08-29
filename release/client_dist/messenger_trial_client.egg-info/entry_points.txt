@@ -1,0 +1,2 @@
+[console_scripts]
+client_run = messenger_trial_client.run_client:main
